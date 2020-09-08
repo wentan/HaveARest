@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection; 
+using System.Reflection;
 using System.Windows;
-using System.Windows.Controls; 
+using System.Windows.Controls;
 
 namespace WpfHaveRest
 {
@@ -15,7 +15,7 @@ namespace WpfHaveRest
         public MaskWindow()
         {
             InitializeComponent();
-            
+
             browser.Navigate(new Uri("http://cn.bing.com", UriKind.RelativeOrAbsolute));
             browser.Navigated += (a, b) => { HideScriptErrors(browser, true); };
         }
@@ -31,24 +31,11 @@ namespace WpfHaveRest
                 return;
             }
             objComWebBrowser.GetType().InvokeMember("Silent", BindingFlags.SetProperty, null, objComWebBrowser, new object[] { hide });
-        }
-
-        public void ShowALLScreens()
-        {
-            List<System.Windows.Forms.Screen> screens = System.Windows.Forms.Screen.AllScreens.ToList(); 
-            this.WindowStyle = WindowStyle.None;
-            this.WindowStartupLocation = WindowStartupLocation.Manual; 
-            this.Left = 0;
-            this.Top = 0;
-            this.Width = screens.Sum(t => t.Bounds.Width);
-            this.Height = screens.Max(t => t.Bounds.Height);
-            this.WindowState = WindowState.Normal;
-            this.Show();
-        }
+        } 
         protected override void OnClosed(EventArgs e)
         {
             browser.Dispose();
-            base.OnClosed(e);
+            this.Hide();
         }
     }
 }

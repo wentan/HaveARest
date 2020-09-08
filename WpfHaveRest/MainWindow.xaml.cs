@@ -1,5 +1,7 @@
-﻿using System; 
+﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading; 
@@ -19,7 +21,7 @@ namespace WpfHaveRest
         Timer timer;
         TimeSpan countDownTime;
         TimeSpan restTime;
-        MaskWindow mw;
+        Dictionary<int, MaskWindow> masks = new Dictionary<int, MaskWindow>(); 
         private System.Windows.Forms.NotifyIcon notifyIcon = null;
         public MainWindow()
         {
@@ -56,7 +58,7 @@ namespace WpfHaveRest
             countDownSecond.IsEnabled = false;
             intervalSecond.IsEnabled = false;
             this.Hide(); 
-            initTTime();
+            initTTime(); 
             timer = new Timer(WorkCountDown, null, 1000, Timeout.Infinite);
             notifyIcon.ShowBalloonTip(1000, "后台运行", "右点图标进行更多操作", System.Windows.Forms.ToolTipIcon.Info);
         }
@@ -69,7 +71,7 @@ namespace WpfHaveRest
             {
                 Dispatcher.Invoke(initRTime);
                 timer = new Timer(RestCountDown, null, 0, Timeout.Infinite);
-                Dispatcher.Invoke(() => { mw = new MaskWindow(); mw.ShowALLScreens(); this.Topmost = false; this.WindowState = WindowState.Minimized; });
+                Dispatcher.Invoke(ShowMaskWindows);
             }
             else if (countDownTime == new TimeSpan(0, 1, 0))
             {
@@ -96,7 +98,7 @@ namespace WpfHaveRest
             {
                 Dispatcher.Invoke(initTTime);
                 timer = new Timer(WorkCountDown, null, 0, Timeout.Infinite);
-                Dispatcher.Invoke(() => { if (mw != null) { mw.Close(); } });
+                Dispatcher.Invoke(() => { masks.Values.ToList().ForEach(t => t.Close()); });
             }
             else
             {
@@ -148,6 +150,31 @@ namespace WpfHaveRest
             var hwnd = new WindowInteropHelper(this).Handle;
             var value = GetWindowLong(hwnd, GWL_STYLE) & ~WS_SYSMENU & WS_MINIMIZE & WS_MAXIMIZE;
             SetWindowLong(hwnd, GWL_STYLE, value);
-        } 
+        }
+
+       
+        private void ShowMaskWindows() {
+            this.Topmost = false;
+            this.WindowState = WindowState.Minimized;
+            List<System.Windows.Forms.Screen> screens = System.Windows.Forms.Screen.AllScreens.ToList();
+            for (var i = 0; i < screens.Count; i++)
+            {
+                var mask = new MaskWindow();
+                ShowMask(mask, i);
+                masks.Add(i, mask);
+            } 
+
+        }
+
+        private void ShowMask(MaskWindow window,int monitor)
+        {
+            window.ShowInTaskbar = false;
+            window.Show();
+            window.WindowState = WindowState.Normal;
+            window.Topmost = true;
+            window.Left = System.Windows.Forms.Screen.AllScreens[monitor].WorkingArea.Left + 20;
+            window.Top = System.Windows.Forms.Screen.AllScreens[monitor].WorkingArea.Top;
+            window.WindowState = WindowState.Maximized; 
+        }
     }
 }
